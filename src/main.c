@@ -38,12 +38,12 @@ void app_main(void)
     while (pos < n) {
         int at_line_start = pos == 0 || s[pos - 1] == dfa[0];
         int tok = match(dfa, s + pos, n - pos, at_line_start, &len);
-        if (tok != 5) {
-            printf("%d: ", tok);
-            for (size_t k = pos; k < pos + len; k++)
-                if (s[k] == '\n') fputs("\\n", stdout); else putchar(s[k]);
-            putchar('\n');
-        }
+            
+        printf("%02d at pos %03d: ", tok, pos);
+        for (size_t k = pos; k < pos + len; k++)
+            if (s[k] == '\n') fputs("\\n", stdout); else putchar(s[k]);
+        putchar('\n');
+    
         pos += len;
     }
 }
