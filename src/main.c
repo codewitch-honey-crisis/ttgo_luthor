@@ -1,14 +1,15 @@
 /* Minimal lexer over a flat DFA table (UTF-8 table, input is bytes).
    The table was built with the error rule, so every position yields a token of length >= 1. */
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
-
-static const int dfa[] = {
+#define TYPE int16_t
+static const TYPE dfa[] = {
     #include "lex_table.dfa"
 };
 
 /* Longest match at s[0..n). Returns the token id (-1 if none); *len gets the match length. */
-static int match(const int* dfa, const unsigned char* s, size_t n, int at_line_start, size_t* len)
+static int match(const TYPE* dfa, const unsigned char* s, size_t n, int at_line_start, size_t* len)
 {
     int state = 1, accept = -1, bol = at_line_start;
     size_t i = 0;
@@ -19,7 +20,7 @@ static int match(const int* dfa, const unsigned char* s, size_t n, int at_line_s
         if (dfa[state] != -1) { accept = dfa[state]; *len = i; }
         if (i == n) break;
         int c = s[i], next = -1;
-        const int* r = dfa + state + 4;             /* (min, max, target) triples, sorted */
+        const TYPE* r = dfa + state + 4;             /* (min, max, target) triples, sorted */
         for (int k = 0; k < dfa[state + 3] && c >= r[0]; k++, r += 3)
             if (c <= r[1]) { next = r[2]; break; }
         if (next == -1) break;
@@ -38,7 +39,6 @@ void app_main(void)
     while (pos < n) {
         int at_line_start = pos == 0 || s[pos - 1] == dfa[0];
         int tok = match(dfa, s + pos, n - pos, at_line_start, &len);
-            
         printf("%02d at pos %03d: ", tok, pos);
         for (size_t k = pos; k < pos + len; k++)
             if (s[k] == '\n') fputs("\\n", stdout); else putchar(s[k]);
